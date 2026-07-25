@@ -17,6 +17,7 @@ export function useEngine(canvasRef: React.RefObject<HTMLCanvasElement | null>) 
   const [settings, setSettings] = useState<SimulationSettings | null>(null);
   const [stats, setStats] = useState<EngineStats>(EMPTY_STATS);
   const [uiVisible, setUiVisible] = useState(true);
+  const [forceStates, setForceStates] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -24,6 +25,7 @@ export function useEngine(canvasRef: React.RefObject<HTMLCanvasElement | null>) 
     const engine = new Engine(canvas);
     engineRef.current = engine;
     setSettings({ ...engine.settings });
+    setForceStates(engine.getForceStates());
     engine.onStats(setStats);
     engine.start();
     return () => {
@@ -51,6 +53,13 @@ export function useEngine(canvasRef: React.RefObject<HTMLCanvasElement | null>) 
     engineRef.current?.reset();
   }, []);
 
+  const toggleForce = useCallback((id: string) => {
+    const engine = engineRef.current;
+    if (!engine) return;
+    engine.setForceEnabled(id, !engine.isForceEnabled(id));
+    setForceStates(engine.getForceStates());
+  }, []);
+
   // Global keyboard shortcuts.
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -63,11 +72,18 @@ export function useEngine(canvasRef: React.RefObject<HTMLCanvasElement | null>) 
         case 'KeyR':
           reset();
           break;
-        case 'KeyG': {
-          const engine = engineRef.current;
-          if (engine) engine.setForceEnabled('gravity', !engine.isForceEnabled('gravity'));
+        case 'KeyG':
+          toggleForce('gravity');
           break;
-        }
+        case 'KeyV':
+          toggleForce('vortex');
+          break;
+        case 'KeyN':
+          toggleForce('noiseFlow');
+          break;
+        case 'KeyO':
+          toggleForce('orbit');
+          break;
         case 'KeyH':
           setUiVisible((v) => !v);
           break;
@@ -83,7 +99,7 @@ export function useEngine(canvasRef: React.RefObject<HTMLCanvasElement | null>) 
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [applyPreset, reset]);
+  }, [applyPreset, reset, toggleForce]);
 
-  return { settings, stats, uiVisible, applySettings, applyPreset, reset };
+  return { settings, stats, uiVisible, forceStates, applySettings, applyPreset, reset, toggleForce };
 }

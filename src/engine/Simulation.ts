@@ -46,6 +46,10 @@ export class Simulation {
     return this.forces.find((f) => f.id === id);
   }
 
+  listForces(): readonly Force[] {
+    return this.forces;
+  }
+
   resize(width: number, height: number): void {
     this.ctx.width = width;
     this.ctx.height = height;

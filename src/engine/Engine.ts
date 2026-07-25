@@ -7,7 +7,11 @@ import { PointerInput } from '../input/PointerInput';
 import { UniformEmitter } from '../emitters/UniformEmitter';
 import { GravityForce } from '../forces/Gravity';
 import { RepulsionForce } from '../forces/Repulsion';
-import { DriftForce } from '../forces/Drift';
+import { NoiseFlowForce } from '../forces/NoiseFlow';
+import { VortexForce } from '../forces/Vortex';
+import { WindForce } from '../forces/Wind';
+import { AttractorForce } from '../forces/Attractor';
+import { BoidsForce } from '../forces/Boids';
 
 /** Hard cap on pool allocation; the active count can be anything below. */
 const MAX_PARTICLES = 50_000;
@@ -21,6 +25,9 @@ export const DEFAULT_SETTINGS: SimulationSettings = {
   drag: 0.35,
   gravityStrength: 1,
   repulsionStrength: 1,
+  vortexStrength: 1,
+  turbulence: 1,
+  windStrength: 1,
   particleSize: 1.6,
   glowIntensity: 0.8,
   trailLength: 0.85,
@@ -75,9 +82,13 @@ export class Engine {
     this.renderer = new Canvas2DRenderer(canvas);
     this.input = new PointerInput(canvas, this.pointer);
 
-    this.simulation.addForce(new DriftForce());
+    this.simulation.addForce(new NoiseFlowForce());
     this.simulation.addForce(new GravityForce());
     this.simulation.addForce(new RepulsionForce());
+    this.simulation.addForce(new VortexForce());
+    this.simulation.addForce(new WindForce());
+    this.simulation.addForce(new AttractorForce());
+    this.simulation.addForce(new BoidsForce(MAX_PARTICLES));
 
     this.resizeObserver = new ResizeObserver(() => this.handleResize());
     this.resizeObserver.observe(canvas);
@@ -139,6 +150,15 @@ export class Engine {
 
   isForceEnabled(id: string): boolean {
     return this.simulation.getForce(id)?.enabled ?? false;
+  }
+
+  /** Snapshot of every registered force's enabled flag, for the UI. */
+  getForceStates(): Record<string, boolean> {
+    const states: Record<string, boolean> = {};
+    for (const force of this.simulation.listForces()) {
+      states[force.id] = force.enabled;
+    }
+    return states;
   }
 
   onStats(listener: ((stats: EngineStats) => void) | null): void {

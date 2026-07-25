@@ -32,13 +32,26 @@ function Slider({ label, min, max, step, value, format, onChange }: SliderProps)
   );
 }
 
+/** Force ids surfaced as toggle chips, with display labels. */
+const FORCE_TOGGLES: { id: string; label: string }[] = [
+  { id: 'noiseFlow', label: 'Noise' },
+  { id: 'gravity', label: 'Gravity' },
+  { id: 'repulsion', label: 'Repulsion' },
+  { id: 'vortex', label: 'Vortex' },
+  { id: 'wind', label: 'Wind' },
+  { id: 'orbit', label: 'Orbit' },
+  { id: 'boids', label: 'Boids' },
+];
+
 export interface ControlPanelProps {
   settings: SimulationSettings;
   stats: EngineStats;
   visible: boolean;
+  forceStates: Record<string, boolean>;
   onChange: (patch: Partial<SimulationSettings>) => void;
   onPreset: (id: string) => void;
   onReset: () => void;
+  onToggleForce: (id: string) => void;
 }
 
 /**
@@ -50,9 +63,11 @@ export function ControlPanel({
   settings,
   stats,
   visible,
+  forceStates,
   onChange,
   onPreset,
   onReset,
+  onToggleForce,
 }: ControlPanelProps) {
   if (!visible) return null;
 
@@ -111,6 +126,17 @@ export function ControlPanel({
 
       <section className="cp-section">
         <h2>Forces</h2>
+        <div className="cp-row">
+          {FORCE_TOGGLES.map((force) => (
+            <button
+              key={force.id}
+              className={forceStates[force.id] ? 'active' : ''}
+              onClick={() => onToggleForce(force.id)}
+            >
+              {force.label}
+            </button>
+          ))}
+        </div>
         <Slider
           label="Gravity"
           min={0}
@@ -126,6 +152,30 @@ export function ControlPanel({
           step={0.05}
           value={settings.repulsionStrength}
           onChange={(v) => onChange({ repulsionStrength: v })}
+        />
+        <Slider
+          label="Vortex"
+          min={0}
+          max={4}
+          step={0.05}
+          value={settings.vortexStrength}
+          onChange={(v) => onChange({ vortexStrength: v })}
+        />
+        <Slider
+          label="Turbulence"
+          min={0}
+          max={4}
+          step={0.05}
+          value={settings.turbulence}
+          onChange={(v) => onChange({ turbulence: v })}
+        />
+        <Slider
+          label="Wind"
+          min={0}
+          max={4}
+          step={0.05}
+          value={settings.windStrength}
+          onChange={(v) => onChange({ windStrength: v })}
         />
       </section>
 
@@ -175,7 +225,7 @@ export function ControlPanel({
       <footer className="cp-footer">
         Drag to attract · Right-drag / Shift to repel · Scroll for strength
         <br />
-        Space pause · R reset · G gravity · H hide UI
+        Space pause · R reset · G gravity · V vortex · N noise · O orbit · H hide UI
       </footer>
     </aside>
   );

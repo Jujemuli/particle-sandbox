@@ -27,6 +27,10 @@ export interface SimulationSettings {
   drag: number;
   gravityStrength: number;
   repulsionStrength: number;
+  vortexStrength: number;
+  /** Curl-noise flow field intensity. */
+  turbulence: number;
+  windStrength: number;
   /** Base particle radius in CSS pixels. */
   particleSize: number;
   /** Glow sprite intensity, 0..1. */
