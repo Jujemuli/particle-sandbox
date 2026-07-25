@@ -4,19 +4,30 @@ import type { AudioLevels } from '../audio/AudioAnalyzer';
 /** Pointer interaction modes shared between input handling and forces. */
 export type PointerMode = 'attract' | 'repel';
 
+/** Maximum simultaneous contact points (multitouch gravity wells). */
+export const MAX_POINTERS = 8;
+
 /**
- * Normalized interaction state. Mouse, touch and keyboard all mutate this
- * single object; the simulation reads it once per fixed step.
+ * Normalized interaction state. Mouse, touch, pen and keyboard all mutate
+ * this single object; the simulation reads it once per fixed step.
+ *
+ * Multiple simultaneous contacts are stored in fixed typed arrays so every
+ * finger becomes an independent force center with zero allocation.
  */
 export interface PointerState {
-  /** Pointer position in simulation (CSS pixel) space. */
+  /** Primary pointer position (last moved), in CSS pixel space. */
   x: number;
   y: number;
-  /** Whether the pointer is currently pressed on the canvas. */
+  /** Whether any contact point is currently pressed on the canvas. */
   active: boolean;
   mode: PointerMode;
   /** User-adjustable force strength multiplier (scroll wheel). */
   strength: number;
+  /** Number of active contact points (prefix of the arrays below). */
+  count: number;
+  /** Active contact positions, length {@link MAX_POINTERS}. */
+  px: Float32Array;
+  py: Float32Array;
 }
 
 /** Tunable simulation parameters, mutated by the UI and presets. */

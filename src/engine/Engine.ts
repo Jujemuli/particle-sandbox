@@ -1,6 +1,7 @@
 import { Simulation } from './Simulation';
 import { Canvas2DRenderer } from '../rendering/Canvas2DRenderer';
 import type { Renderer } from './Renderer';
+import { MAX_POINTERS } from './types';
 import type { EngineStats, FrameContext, PointerState, SimulationSettings } from './types';
 import { PerformanceMonitor } from './PerformanceMonitor';
 import { PointerInput } from '../input/PointerInput';
@@ -51,6 +52,9 @@ export class Engine {
     active: false,
     mode: 'attract',
     strength: 1,
+    count: 0,
+    px: new Float32Array(MAX_POINTERS),
+    py: new Float32Array(MAX_POINTERS),
   };
 
   /** Shared with every frame context; mutated in place by the analyzer. */
@@ -134,7 +138,7 @@ export class Engine {
   /** Re-seeds all particles deterministically and clears trails. */
   reset(): void {
     const pool = this.simulation.pool;
-    pool.setCount(this.settings.particleCount);
+    pool.setCount(this.effectiveCount());
     this.seeder.seedRange(pool, this.frameContext(), 0, pool.count);
     this.renderer.clear();
   }
@@ -145,12 +149,7 @@ export class Engine {
     Object.assign(this.settings, patch);
 
     if (patch.particleCount !== undefined && patch.particleCount !== prevCount) {
-      const pool = this.simulation.pool;
-      const oldCount = pool.count;
-      pool.setCount(patch.particleCount);
-      if (pool.count > oldCount) {
-        this.seeder.seedRange(pool, this.frameContext(), oldCount, pool.count);
-      }
+      this.applyParticleBudget();
     }
     if (patch.paletteId !== undefined) this.renderer.clear();
   }
@@ -192,6 +191,7 @@ export class Engine {
 
     if (this.monitor.record(delta * 1000, now)) {
       this.applyRenderScale();
+      this.applyParticleBudget();
     }
     this.emitStats(now);
     this.rafId = requestAnimationFrame(this.frame);
@@ -207,6 +207,23 @@ export class Engine {
   private applyRenderScale(): void {
     const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
     this.renderer.resize(this.cssWidth, this.cssHeight, dpr, this.monitor.renderScale);
+  }
+
+  /** Requested count scaled by adaptive quality's density stage. */
+  private effectiveCount(): number {
+    return Math.round(this.settings.particleCount * this.monitor.densityScale);
+  }
+
+  /** Grows/shrinks the active pool toward the current budget. */
+  private applyParticleBudget(): void {
+    const pool = this.simulation.pool;
+    const target = this.effectiveCount();
+    if (target === pool.count) return;
+    const oldCount = pool.count;
+    pool.setCount(target);
+    if (pool.count > oldCount) {
+      this.seeder.seedRange(pool, this.frameContext(), oldCount, pool.count);
+    }
   }
 
   /** Returns the shared read-only frame context for seeding/rendering. */

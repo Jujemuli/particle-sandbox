@@ -19,17 +19,20 @@ export class GravityForce implements Force {
 
     const strength = settings.gravityStrength * pointer.strength * 3.2e6;
     const { x, y, vx, vy, count } = pool;
-    const px = pointer.x;
-    const py = pointer.y;
 
-    for (let i = 0; i < count; i++) {
-      const dx = px - x[i];
-      const dy = py - y[i];
-      const distSq = dx * dx + dy * dy + SOFTENING;
-      const invDist = 1 / Math.sqrt(distSq);
-      const accel = (strength / distSq) * invDist * dt;
-      vx[i] += dx * accel;
-      vy[i] += dy * accel;
+    // Every active contact point is an independent gravity well.
+    for (let p = 0; p < pointer.count; p++) {
+      const px = pointer.px[p];
+      const py = pointer.py[p];
+      for (let i = 0; i < count; i++) {
+        const dx = px - x[i];
+        const dy = py - y[i];
+        const distSq = dx * dx + dy * dy + SOFTENING;
+        const invDist = 1 / Math.sqrt(distSq);
+        const accel = (strength / distSq) * invDist * dt;
+        vx[i] += dx * accel;
+        vy[i] += dy * accel;
+      }
     }
   }
 }

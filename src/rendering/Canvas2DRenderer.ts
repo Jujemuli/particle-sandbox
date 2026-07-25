@@ -85,8 +85,12 @@ export class Canvas2DRenderer implements Renderer {
 
     for (let i = 0; i < count; i++) {
       const size = baseSize * pScale[i];
+      const dx = x[i] * scale - size / 2;
+      const dy = y[i] * scale - size / 2;
+      // Viewport culling: skip sprites fully outside the canvas.
+      if (dx + size < 0 || dx > w || dy + size < 0 || dy > h) continue;
       const sprite = sprites[(((shade[i] + shadeShift) % 1) * maxShade) | 0];
-      ctx.drawImage(sprite, x[i] * scale - size / 2, y[i] * scale - size / 2, size, size);
+      ctx.drawImage(sprite, dx, dy, size, size);
     }
   }
 

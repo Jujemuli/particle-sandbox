@@ -20,19 +20,22 @@ export class RepulsionForce implements Force {
 
     const strength = settings.repulsionStrength * pointer.strength * 5200;
     const { x, y, vx, vy, count } = pool;
-    const px = pointer.x;
-    const py = pointer.y;
 
-    for (let i = 0; i < count; i++) {
-      const dx = x[i] - px;
-      const dy = y[i] - py;
-      const distSq = dx * dx + dy * dy;
-      if (distSq >= RADIUS_SQ || distSq === 0) continue;
-      const dist = Math.sqrt(distSq);
-      const falloff = 1 - dist / RADIUS;
-      const accel = (strength * falloff * falloff * dt) / dist;
-      vx[i] += dx * accel;
-      vy[i] += dy * accel;
+    // Every active contact point pushes independently.
+    for (let p = 0; p < pointer.count; p++) {
+      const px = pointer.px[p];
+      const py = pointer.py[p];
+      for (let i = 0; i < count; i++) {
+        const dx = x[i] - px;
+        const dy = y[i] - py;
+        const distSq = dx * dx + dy * dy;
+        if (distSq >= RADIUS_SQ || distSq === 0) continue;
+        const dist = Math.sqrt(distSq);
+        const falloff = 1 - dist / RADIUS;
+        const accel = (strength * falloff * falloff * dt) / dist;
+        vx[i] += dx * accel;
+        vy[i] += dy * accel;
+      }
     }
   }
 }
