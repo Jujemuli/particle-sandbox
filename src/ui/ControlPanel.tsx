@@ -48,10 +48,13 @@ export interface ControlPanelProps {
   stats: EngineStats;
   visible: boolean;
   forceStates: Record<string, boolean>;
+  audioActive: boolean;
   onChange: (patch: Partial<SimulationSettings>) => void;
   onPreset: (id: string) => void;
   onReset: () => void;
   onToggleForce: (id: string) => void;
+  onToggleMicrophone: () => void;
+  onAudioFile: (file: File) => void;
 }
 
 /**
@@ -64,10 +67,13 @@ export function ControlPanel({
   stats,
   visible,
   forceStates,
+  audioActive,
   onChange,
   onPreset,
   onReset,
   onToggleForce,
+  onToggleMicrophone,
+  onAudioFile,
 }: ControlPanelProps) {
   if (!visible) return null;
 
@@ -208,6 +214,35 @@ export function ControlPanel({
       </section>
 
       <section className="cp-section">
+        <h2>Audio</h2>
+        <div className="cp-row">
+          <button className={audioActive ? 'active' : ''} onClick={onToggleMicrophone}>
+            {audioActive ? 'Audio On' : 'Microphone'}
+          </button>
+          <label className="cp-file">
+            Upload Track
+            <input
+              type="file"
+              accept="audio/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) onAudioFile(file);
+                e.target.value = '';
+              }}
+            />
+          </label>
+        </div>
+        <Slider
+          label="Sensitivity"
+          min={0.2}
+          max={4}
+          step={0.1}
+          value={settings.audioSensitivity}
+          onChange={(v) => onChange({ audioSensitivity: v })}
+        />
+      </section>
+
+      <section className="cp-section">
         <h2>Palette</h2>
         <div className="cp-row">
           {PALETTES.map((palette) => (
@@ -225,7 +260,7 @@ export function ControlPanel({
       <footer className="cp-footer">
         Drag to attract · Right-drag / Shift to repel · Scroll for strength
         <br />
-        Space pause · R reset · G gravity · V vortex · N noise · O orbit · H hide UI
+        Space pause · R reset · G gravity · V vortex · N noise · O orbit · A audio · H hide UI · 1-8 presets
       </footer>
     </aside>
   );

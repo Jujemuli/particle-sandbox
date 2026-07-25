@@ -72,16 +72,20 @@ export class Canvas2DRenderer implements Renderer {
       ctx.globalAlpha = 1;
     }
 
-    // Additive particle pass.
+    // Additive particle pass. Audio modulates size (bass swells) and
+    // shifts colors around the palette (highs), keeping visuals musical.
     ctx.globalCompositeOperation = 'lighter';
     const { x, y, scale: pScale, shade, count } = pool;
     const sprites = this.sprites;
-    const baseSize = settings.particleSize * 4 * scale;
+    const audio = frame.audio;
+    const sizeBoost = audio.active ? 1 + audio.bass * 0.6 : 1;
+    const shadeShift = audio.active ? audio.high * 0.5 : 0;
+    const baseSize = settings.particleSize * 4 * scale * sizeBoost;
     const maxShade = SPRITE_COUNT - 1;
 
     for (let i = 0; i < count; i++) {
       const size = baseSize * pScale[i];
-      const sprite = sprites[(shade[i] * maxShade) | 0];
+      const sprite = sprites[(((shade[i] + shadeShift) % 1) * maxShade) | 0];
       ctx.drawImage(sprite, x[i] * scale - size / 2, y[i] * scale - size / 2, size, size);
     }
   }

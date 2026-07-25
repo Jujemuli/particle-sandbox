@@ -1,4 +1,5 @@
 import type { ParticlePool } from './ParticlePool';
+import type { AudioLevels } from '../audio/AudioAnalyzer';
 
 /** Pointer interaction modes shared between input handling and forces. */
 export type PointerMode = 'attract' | 'repel';
@@ -39,6 +40,8 @@ export interface SimulationSettings {
   trailLength: number;
   paletteId: string;
   paused: boolean;
+  /** Gain applied to analyzed audio levels. */
+  audioSensitivity: number;
 }
 
 /** Immutable per-frame context handed to forces, emitters and renderers. */
@@ -52,6 +55,8 @@ export interface FrameContext {
   height: number;
   pointer: Readonly<PointerState>;
   settings: Readonly<SimulationSettings>;
+  /** Live audio band levels (zeroed when no source is active). */
+  audio: Readonly<AudioLevels>;
 }
 
 /**

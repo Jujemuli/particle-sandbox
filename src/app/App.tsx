@@ -9,8 +9,19 @@ import './App.css';
  */
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const { settings, stats, uiVisible, forceStates, applySettings, applyPreset, reset, toggleForce } =
-    useEngine(canvasRef);
+  const {
+    settings,
+    stats,
+    uiVisible,
+    forceStates,
+    audioActive,
+    applySettings,
+    applyPreset,
+    reset,
+    toggleForce,
+    toggleMicrophone,
+    loadAudioFile,
+  } = useEngine(canvasRef);
 
   return (
     <div className="app">
@@ -22,7 +33,10 @@ export default function App() {
           stats={stats}
           visible={uiVisible}
           forceStates={forceStates}
+          audioActive={audioActive}
           onToggleForce={toggleForce}
+          onToggleMicrophone={() => void toggleMicrophone()}
+          onAudioFile={(file) => void loadAudioFile(file)}
           onChange={applySettings}
           onPreset={applyPreset}
           onReset={reset}

@@ -77,6 +77,28 @@
   background: rgba(126, 240, 212, 0.14);
 }
 
+.cp-file {
+  position: relative;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.cp-file:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.cp-file input[type='file'] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
 .cp-slider {
   display: block;
   margin-bottom: 8px;

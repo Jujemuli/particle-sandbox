@@ -12,6 +12,8 @@ import { VortexForce } from '../forces/Vortex';
 import { WindForce } from '../forces/Wind';
 import { AttractorForce } from '../forces/Attractor';
 import { BoidsForce } from '../forces/Boids';
+import { AudioPulseForce } from '../forces/AudioPulse';
+import { AudioAnalyzer, type AudioLevels } from '../audio/AudioAnalyzer';
 
 /** Hard cap on pool allocation; the active count can be anything below. */
 const MAX_PARTICLES = 50_000;
@@ -33,6 +35,7 @@ export const DEFAULT_SETTINGS: SimulationSettings = {
   trailLength: 0.85,
   paletteId: 'aurora',
   paused: false,
+  audioSensitivity: 1.4,
 };
 
 /**
@@ -49,6 +52,16 @@ export class Engine {
     mode: 'attract',
     strength: 1,
   };
+
+  /** Shared with every frame context; mutated in place by the analyzer. */
+  private readonly audioLevels: AudioLevels = {
+    bass: 0,
+    mid: 0,
+    high: 0,
+    level: 0,
+    active: false,
+  };
+  readonly audio: AudioAnalyzer = new AudioAnalyzer(this.audioLevels);
 
   private readonly simulation: Simulation;
   private readonly renderer: Renderer;
@@ -77,8 +90,9 @@ export class Engine {
       height: 1,
       pointer: this.pointer,
       settings: this.settings,
+      audio: this.audioLevels,
     };
-    this.simulation = new Simulation(MAX_PARTICLES, this.settings, this.pointer);
+    this.simulation = new Simulation(MAX_PARTICLES, this.settings, this.pointer, this.audioLevels);
     this.renderer = new Canvas2DRenderer(canvas);
     this.input = new PointerInput(canvas, this.pointer);
 
@@ -89,6 +103,7 @@ export class Engine {
     this.simulation.addForce(new WindForce());
     this.simulation.addForce(new AttractorForce());
     this.simulation.addForce(new BoidsForce(MAX_PARTICLES));
+    this.simulation.addForce(new AudioPulseForce());
 
     this.resizeObserver = new ResizeObserver(() => this.handleResize());
     this.resizeObserver.observe(canvas);
@@ -113,6 +128,7 @@ export class Engine {
     this.input.dispose();
     this.resizeObserver.disconnect();
     this.renderer.dispose();
+    this.audio.dispose();
   }
 
   /** Re-seeds all particles deterministically and clears trails. */
@@ -170,6 +186,7 @@ export class Engine {
     const delta = Math.min((now - this.lastTime) / 1000, 0.25);
     this.lastTime = now;
 
+    this.audio.update(this.settings.audioSensitivity);
     this.simulation.update(delta);
     this.renderer.render(this.simulation.pool, this.frameContext());
 

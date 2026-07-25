@@ -1,4 +1,5 @@
 import { ParticlePool } from './ParticlePool';
+import type { AudioLevels } from '../audio/AudioAnalyzer';
 import type { Force, FrameContext, PointerState, SimulationSettings } from './types';
 
 /** Fixed timestep in seconds. Decoupled from render rate for determinism. */
@@ -24,7 +25,12 @@ export class Simulation {
   private readonly settings: SimulationSettings;
   private readonly pointer: PointerState;
 
-  constructor(capacity: number, settings: SimulationSettings, pointer: PointerState) {
+  constructor(
+    capacity: number,
+    settings: SimulationSettings,
+    pointer: PointerState,
+    audio: AudioLevels,
+  ) {
     this.settings = settings;
     this.pointer = pointer;
     this.pool = new ParticlePool(capacity);
@@ -35,6 +41,7 @@ export class Simulation {
       height: 1,
       pointer: this.pointer,
       settings: this.settings,
+      audio,
     };
   }
 

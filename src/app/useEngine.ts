@@ -18,6 +18,7 @@ export function useEngine(canvasRef: React.RefObject<HTMLCanvasElement | null>) 
   const [stats, setStats] = useState<EngineStats>(EMPTY_STATS);
   const [uiVisible, setUiVisible] = useState(true);
   const [forceStates, setForceStates] = useState<Record<string, boolean>>({});
+  const [audioActive, setAudioActive] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -44,7 +45,14 @@ export function useEngine(canvasRef: React.RefObject<HTMLCanvasElement | null>) 
   const applyPreset = useCallback(
     (id: string) => {
       const preset = PRESETS.find((p) => p.id === id);
-      if (preset) applySettings(preset.settings);
+      const engine = engineRef.current;
+      if (!preset || !engine) return;
+      applySettings(preset.settings);
+      for (const forceId of Object.keys(engine.getForceStates())) {
+        engine.setForceEnabled(forceId, preset.forces.includes(forceId));
+      }
+      setForceStates(engine.getForceStates());
+      engine.reset();
     },
     [applySettings],
   );
@@ -58,6 +66,33 @@ export function useEngine(canvasRef: React.RefObject<HTMLCanvasElement | null>) 
     if (!engine) return;
     engine.setForceEnabled(id, !engine.isForceEnabled(id));
     setForceStates(engine.getForceStates());
+  }, []);
+
+  const toggleMicrophone = useCallback(async () => {
+    const engine = engineRef.current;
+    if (!engine) return;
+    if (engine.audio.active) {
+      engine.audio.disable();
+      setAudioActive(false);
+    } else {
+      try {
+        await engine.audio.enableMicrophone();
+        setAudioActive(true);
+      } catch {
+        setAudioActive(false);
+      }
+    }
+  }, []);
+
+  const loadAudioFile = useCallback(async (file: File) => {
+    const engine = engineRef.current;
+    if (!engine) return;
+    try {
+      await engine.audio.loadFile(file);
+      setAudioActive(true);
+    } catch {
+      setAudioActive(false);
+    }
   }, []);
 
   // Global keyboard shortcuts.
@@ -84,6 +119,9 @@ export function useEngine(canvasRef: React.RefObject<HTMLCanvasElement | null>) 
         case 'KeyO':
           toggleForce('orbit');
           break;
+        case 'KeyA':
+          void toggleMicrophone();
+          break;
         case 'KeyH':
           setUiVisible((v) => !v);
           break;
@@ -99,7 +137,19 @@ export function useEngine(canvasRef: React.RefObject<HTMLCanvasElement | null>) 
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [applyPreset, reset, toggleForce]);
+  }, [applyPreset, reset, toggleForce, toggleMicrophone]);
 
-  return { settings, stats, uiVisible, forceStates, applySettings, applyPreset, reset, toggleForce };
+  return {
+    settings,
+    stats,
+    uiVisible,
+    forceStates,
+    audioActive,
+    applySettings,
+    applyPreset,
+    reset,
+    toggleForce,
+    toggleMicrophone,
+    loadAudioFile,
+  };
 }

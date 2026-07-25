@@ -72,6 +72,62 @@ export const PALETTES: Palette[] = [
     ],
     background: '#040108',
   },
+  {
+    id: 'forest',
+    label: 'Forest',
+    stops: [
+      { h: 95, s: 70, l: 50 },
+      { h: 140, s: 75, l: 45 },
+      { h: 70, s: 80, l: 58 },
+      { h: 160, s: 60, l: 40 },
+    ],
+    background: '#020703',
+  },
+  {
+    id: 'monochrome',
+    label: 'Monochrome',
+    stops: [
+      { h: 220, s: 8, l: 85 },
+      { h: 220, s: 5, l: 60 },
+      { h: 220, s: 10, l: 95 },
+      { h: 220, s: 6, l: 45 },
+    ],
+    background: '#050506',
+  },
+  {
+    id: 'sunset',
+    label: 'Sunset',
+    stops: [
+      { h: 15, s: 90, l: 60 },
+      { h: 340, s: 80, l: 58 },
+      { h: 40, s: 95, l: 62 },
+      { h: 290, s: 60, l: 50 },
+    ],
+    background: '#080306',
+  },
+  {
+    id: 'ice',
+    label: 'Ice',
+    stops: [
+      { h: 195, s: 85, l: 75 },
+      { h: 210, s: 60, l: 85 },
+      { h: 225, s: 70, l: 65 },
+      { h: 185, s: 90, l: 60 },
+    ],
+    background: '#030609',
+  },
+  {
+    id: 'rainbow',
+    label: 'Rainbow',
+    stops: [
+      { h: 0, s: 90, l: 60 },
+      { h: 90, s: 85, l: 55 },
+      { h: 180, s: 90, l: 55 },
+      { h: 270, s: 85, l: 60 },
+      { h: 350, s: 90, l: 60 },
+    ],
+    background: '#040404',
+  },
 ];
 
 export function getPalette(id: string): Palette {
